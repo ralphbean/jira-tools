@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+""" Generate a sprint report """
+
+import argparse
+import sys
+
+import sprintreport
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "team_project",
+        help="Name of the project to report on",
+    )
+    parser.add_argument(
+        "--sprint-start",
+        default="-2w",
+        help="The start of the sprint",
+    )
+    parser.add_argument(
+        "--output-file",
+        default="output.md",
+        help="Location to write output",
+    )
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+
+    try:
+        JIRA = sprintreport.JiraClient()
+    except KeyError as e:
+        print(str(e))
+        sys.exit(1)
+
+    # TODO, permit passing in jql explicitly
+    jql = f"project={args.team_project}"
+
+    orphan_issues, orphan_epics, features = JIRA.gather_issues(jql, args.sprint_start)
+    incoming, outgoing = JIRA.gather_dependencies(jql)
+    output = sprintreport.render(
+        orphan_issues, orphan_epics, features, incoming, outgoing
+    )
+    print(f"Writing output to {args.output_file}")
+    with open(args.output_file, 'w') as f:
+        f.write(output)
