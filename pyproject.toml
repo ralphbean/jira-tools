@@ -1,0 +1,18 @@
+[project]
+name = "sprintreport"
+description = "A script to generate a sprint report from JIRA"
+version = "0.1.0"
+authors = [
+    { name = "Ralph Bean", email = "rbean@redhat.com" }
+]
+readme = "README.md"
+dependencies = ["jira", "jinja2"]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[project.optional-dependencies]
+dev = [
+    "tox",
+]
