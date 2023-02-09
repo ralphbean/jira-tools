@@ -71,7 +71,10 @@ class JiraClient(object):
                 for result in results:
                     yield result
                 i = i + page_size
-                results = self._client.search_issues(query, maxResults=page_size, startAt=i)
+                results = self._client.search_issues(
+                    query, maxResults=page_size, startAt=i
+                )
+
         return _paginate()
 
     def search(self, query):
