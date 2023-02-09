@@ -2,6 +2,7 @@
 """ Generate a sprint report """
 
 import argparse
+import logging
 import sys
 
 import sprintreport
@@ -26,11 +27,21 @@ def get_args():
         default="output.md",
         help="Location to write output",
     )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     try:
         JIRA = sprintreport.JiraClient()
