@@ -127,11 +127,18 @@ def trim(jql):
     return textwrap.dedent(jql).replace("\n", " ").strip()
 
 
+def _truncate_filter(text, length):
+    if len(text) > length:
+        text = text[:length - 3] + '...'
+    return text
+
+
 def render(issues, epics, features, incoming, outgoing, template):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader('templates/'),
         autoescape=jinja2.select_autoescape(),
     )
+    env.filters['truncate'] = _truncate_filter
     return env.get_template(template).render(
         issues=issues,
         epics=epics,
