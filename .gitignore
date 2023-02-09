@@ -3,3 +3,4 @@ __pycache__
 *.egg*
 .coverage
 output.html
+output.md
