@@ -116,6 +116,10 @@ class JiraClient(object):
 
         return orphan_issues, orphan_epics, features
 
+    def gather_dependencies(self, jql):
+        # TODO
+        return [], []
+
 
 def trim(jql):
     return textwrap.dedent(jql).replace("\n", " ").strip()
