@@ -10,9 +10,13 @@ class Issue(object):
     def __init__(self, client, raw_issue):
         self.client = client
 
+        # TODO - these uses of customfield_... aren't portable.
+        # Look them up using the meta API.
         self.key = raw_issue.key
-        self.summary = raw_issue.summary
-        self.rank = raw_issue.rank
+        self.summary = raw_issue.fields.summary
+        self.rank = raw_issue.fields.customfield_12311940
+        self.assignee = getattr(raw_issue.fields.assignee, 'raw', None)
+        self.status = raw_issue.fields.status.raw['statusCategory']['name']
         self.children = []
 
         client.cache[self.key] = self
@@ -20,14 +24,17 @@ class Issue(object):
         self.epic = None
         self.feature = None
 
-        if raw_issue.epic:
-            self.epic = Issue.from_raw(client, client.get(raw_issue.epic))
-            self.epic.children.append(self)
+        epic_key = getattr(raw_issue.fields, 'customfield_12311140', None)
+        feature_key = getattr(raw_issue.fields, 'customfield_12313140', None)
+        if epic_key:
+            self.epic = Issue.from_raw(client, client.get(epic_key))
+            if self not in self.epic.children:
+                self.epic.children.append(self)
             self.feature = self.epic.feature
-
-        elif raw_issue.feature:
-            self.feature = Issue.from_raw(client, client.get(raw_issue.feature))
-            self.feature.children.append(self)
+        elif feature_key:
+            self.feature = Issue.from_raw(client, client.get(feature_key))
+            if self not in self.feature.children:
+                self.feature.children.append(self)
 
     @staticmethod
     def from_raw(client, raw_issue):
