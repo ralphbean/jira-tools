@@ -1,3 +1,4 @@
+import operator as op
 import os
 import textwrap
 
@@ -99,15 +100,19 @@ class JiraClient(object):
         )
         issues = self.search(issue_query)
 
-        orphan_issues, orphan_epics, features = [], [], []
+        orphan_issues, orphan_epics, features = set(), set(), set()
 
         for issue in issues:
             if issue.feature:
-                features.append(issue.feature)
+                features.add(issue.feature)
             elif issue.epic:
-                orphan_epics.append(issue.epic)
+                orphan_epics.add(issue.epic)
             else:
-                orphan_issues.append(issue)
+                orphan_issues.add(issue)
+
+        orphan_issues = sorted(orphan_issues, key=op.attrgetter('rank'))
+        orphan_epics = sorted(orphan_epics, key=op.attrgetter('rank'))
+        features = sorted(features, key=op.attrgetter('rank'))
 
         return orphan_issues, orphan_epics, features
 
