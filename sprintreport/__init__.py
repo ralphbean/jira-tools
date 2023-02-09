@@ -133,10 +133,13 @@ def render(issues, epics, features, incoming, outgoing):
         autoescape=jinja2.select_autoescape(),
     )
     template = env.get_template('main.md')
-    return template.render(
+    markdown = template.render(
         issues=issues,
         epics=epics,
         features=features,
         incoming=incoming,
         outgoing=outgoing,
     )
+    template = env.get_template('remark.html')
+    html = template.render(markdown=markdown)
+    return html

@@ -8,3 +8,7 @@
 ---
 {% include 'sections/dependencies.md' %}
 ---
+name: last-page
+template: inverse
+
+## All done.
