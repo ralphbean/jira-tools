@@ -2,10 +2,14 @@
 """ Generate a sprint report """
 
 import argparse
+import datetime
 import logging
 import sys
 
 import sprintreport
+
+today = datetime.date.today()
+TWO_WEEKS_AGO = today - datetime.timedelta(days=14)
 
 
 def get_args():
@@ -19,7 +23,7 @@ def get_args():
     )
     parser.add_argument(
         "--sprint-start",
-        default="-2w",
+        default=TWO_WEEKS_AGO,
         help="The start of the sprint",
     )
     parser.add_argument(
@@ -31,6 +35,11 @@ def get_args():
         "--template",
         default="remark.html",
         help="Choice of template (one of remark.html or markdown.md)",
+    )
+    parser.add_argument(
+        "--title",
+        default="Sprint Report",
+        help="Title of the report",
     )
     parser.add_argument(
         "--debug",
@@ -65,6 +74,7 @@ if __name__ == '__main__':
     log.info(f"Rendering report")
     output = sprintreport.render(
         orphan_issues, orphan_epics, features, incoming, outgoing, template=args.template,
+        start=args.sprint_start, end=today, title=title,
     )
     log.info(f"Writing output to {args.output_file}")
     with open(args.output_file, 'w') as f:

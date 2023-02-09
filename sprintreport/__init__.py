@@ -144,7 +144,7 @@ def _truncate_filter(text, length):
     return text
 
 
-def render(issues, epics, features, incoming, outgoing, template):
+def render(issues, epics, features, incoming, outgoing, template, start, end, title):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader('templates/'),
         autoescape=jinja2.select_autoescape(),
@@ -156,4 +156,7 @@ def render(issues, epics, features, incoming, outgoing, template):
         features=features,
         incoming=incoming,
         outgoing=outgoing,
+        start=start,
+        end=end,
+        title=title,
     )
