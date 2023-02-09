@@ -73,8 +73,15 @@ if __name__ == '__main__':
     incoming, outgoing = JIRA.gather_dependencies(jql)
     log.info(f"Rendering report")
     output = sprintreport.render(
-        orphan_issues, orphan_epics, features, incoming, outgoing, template=args.template,
-        start=args.sprint_start, end=today, title=title,
+        orphan_issues,
+        orphan_epics,
+        features,
+        incoming,
+        outgoing,
+        template=args.template,
+        start=args.sprint_start,
+        end=today,
+        title=title,
     )
     log.info(f"Writing output to {args.output_file}")
     with open(args.output_file, 'w') as f:

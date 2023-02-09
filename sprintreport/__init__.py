@@ -56,7 +56,6 @@ class Issue(object):
         return False
 
 
-
 class JiraClient(object):
     def __init__(self):
         self._client = self._construct_client()
@@ -140,7 +139,7 @@ def trim(jql):
 
 def _truncate_filter(text, length):
     if len(text) > length:
-        text = text[:length - 3] + '...'
+        text = text[: length - 3] + '...'
     return text
 
 
