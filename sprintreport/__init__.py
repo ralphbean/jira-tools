@@ -127,19 +127,15 @@ def trim(jql):
     return textwrap.dedent(jql).replace("\n", " ").strip()
 
 
-def render(issues, epics, features, incoming, outgoing):
+def render(issues, epics, features, incoming, outgoing, template):
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader('templates/'),
         autoescape=jinja2.select_autoescape(),
     )
-    template = env.get_template('main.md')
-    markdown = template.render(
+    return env.get_template(template).render(
         issues=issues,
         epics=epics,
         features=features,
         incoming=incoming,
         outgoing=outgoing,
     )
-    template = env.get_template('remark.html')
-    html = template.render(markdown=markdown)
-    return html

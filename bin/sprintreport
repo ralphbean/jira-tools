@@ -28,6 +28,11 @@ def get_args():
         help="Location to write output",
     )
     parser.add_argument(
+        "--template",
+        default="remark.html",
+        help="Choice of template (one of remark.html or markdown.md)",
+    )
+    parser.add_argument(
         "--debug",
         default=False,
         action="store_true",
@@ -59,7 +64,7 @@ if __name__ == '__main__':
     incoming, outgoing = JIRA.gather_dependencies(jql)
     log.info(f"Rendering report")
     output = sprintreport.render(
-        orphan_issues, orphan_epics, features, incoming, outgoing
+        orphan_issues, orphan_epics, features, incoming, outgoing, template=args.template,
     )
     log.info(f"Writing output to {args.output_file}")
     with open(args.output_file, 'w') as f:
