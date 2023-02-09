@@ -63,20 +63,31 @@ class JiraClient(object):
         return jira.client.JIRA(server=url, token_auth=token)
 
     def _search(self, query):
-        return self._client.search_issues(query)
+        def _paginate():
+            i = 0
+            page_size = 50
+            results = self._client.search_issues(query, maxResults=page_size, startAt=i)
+            while results:
+                for result in results:
+                    yield result
+                i = i + page_size
+                results = self._client.search_issues(query, maxResults=page_size, startAt=i)
+        return _paginate()
 
     def search(self, query):
         issues = self._search(query)
         return [Issue.from_raw(self, issue) for issue in issues]
 
     def get(self, key):
-        query = f"key={key}"
-        results = self.search(query)
-        if len(results) == 0:
-            raise ValueError(f"Could not find issue {key}")
-        if len(results) > 1:
-            raise ValueError(f"Impossible! Found more than one issue {key}")
-        return results[0]
+        if key not in self.cache:
+            query = f"key={key}"
+            results = self.search(query)
+            if len(results) == 0:
+                raise ValueError(f"Could not find issue {key}")
+            if len(results) > 1:
+                raise ValueError(f"Impossible! Found more than one issue {key}")
+            self.cache[key] = results[0]
+        return self.cache[key]
 
     def gather_issues(self, jql, sprint_start):
         issue_query = trim(
