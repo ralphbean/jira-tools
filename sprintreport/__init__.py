@@ -47,6 +47,15 @@ class Issue(object):
     def __repr__(self):
         return f"<{self.key}: {self.summary}>"
 
+    def has_work_in_status(self, status):
+        if self.status == status:
+            return True
+        for child in self.children:
+            if child.has_work_in_status(status):
+                return True
+        return False
+
+
 
 class JiraClient(object):
     def __init__(self):
