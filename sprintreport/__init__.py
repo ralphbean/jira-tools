@@ -2,9 +2,8 @@ import operator as op
 import os
 import textwrap
 
+import jinja2
 import jira
-
-# import jinja2
 
 
 class Issue(object):
@@ -126,4 +125,15 @@ def trim(jql):
 
 
 def render(issues, epics, features, incoming, outgoing):
-    return "TODO"
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader('templates/'),
+        autoescape=jinja2.select_autoescape(),
+    )
+    template = env.get_template('main.md')
+    return template.render(
+        issues=issues,
+        epics=epics,
+        features=features,
+        incoming=incoming,
+        outgoing=outgoing,
+    )
