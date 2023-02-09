@@ -13,6 +13,8 @@ class Issue(object):
         # TODO - these uses of customfield_... aren't portable.
         # Look them up using the meta API.
         self.key = raw_issue.key
+        base_url = os.environ.get("JIRA_URL", "https://issues.redhat.com")
+        self.url = base_url + "/browse/" + self.key
         self.summary = raw_issue.fields.summary
         self.rank = raw_issue.fields.customfield_12311940
         self.assignee = getattr(raw_issue.fields.assignee, 'raw', None)
