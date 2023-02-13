@@ -65,7 +65,9 @@ if __name__ == '__main__':
         sys.exit(1)
 
     log.info(f"Gathering issues from JIRA using: {args.jql}")
-    orphan_issues, orphan_epics, features = JIRA.gather_issues(args.jql, args.sprint_start)
+    orphan_issues, orphan_epics, features = JIRA.gather_issues(
+        args.jql, args.sprint_start
+    )
     log.info(f"Gathering dependencies from JIRA using: {args.jql}")
     incoming, outgoing = JIRA.gather_dependencies(args.jql)
     log.info("Rendering report")
