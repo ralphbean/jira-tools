@@ -144,8 +144,9 @@ def _truncate_filter(text, length):
 
 
 def render(issues, epics, features, incoming, outgoing, template, start, end, title):
+    basedir = os.path.dirname(os.path.dirname(__file__))
     env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader('templates/'),
+        loader=jinja2.FileSystemLoader(f'{basedir}/templates/'),
         autoescape=jinja2.select_autoescape(),
     )
     env.filters['truncate'] = _truncate_filter
