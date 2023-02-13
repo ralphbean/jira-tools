@@ -11,7 +11,7 @@ layout: false
 {%- for issue in epic.children %}{% if issue.has_work_in_status("Done") %}
     - [{{issue.key}}]({{issue.url}}) {{issue.summary | truncate(33)}}
 {%- endif -%}
-{%- endfor -%}
+{% endfor %}
 {% endif -%}
 {% endfor %}
 {% endif -%}
