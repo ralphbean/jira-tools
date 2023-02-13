@@ -18,8 +18,8 @@ def get_args():
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "team_project",
-        help="Name of the project to report on",
+        "jql",
+        help="A JIRA Query Language (jql) expression defining the backlog of the team",
     )
     parser.add_argument(
         "--sprint-start",
@@ -64,13 +64,10 @@ if __name__ == '__main__':
         log.error(str(e))
         sys.exit(1)
 
-    # TODO, permit passing in jql explicitly
-    jql = f"project={args.team_project}"
-
-    log.info(f"Gathering issues from JIRA using: {jql}")
-    orphan_issues, orphan_epics, features = JIRA.gather_issues(jql, args.sprint_start)
-    log.info(f"Gathering dependencies from JIRA using: {jql}")
-    incoming, outgoing = JIRA.gather_dependencies(jql)
+    log.info(f"Gathering issues from JIRA using: {args.jql}")
+    orphan_issues, orphan_epics, features = JIRA.gather_issues(args.jql, args.sprint_start)
+    log.info(f"Gathering dependencies from JIRA using: {args.jql}")
+    incoming, outgoing = JIRA.gather_dependencies(args.jql)
     log.info("Rendering report")
     output = sprintreport.render(
         orphan_issues,
