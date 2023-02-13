@@ -5,6 +5,6 @@
 ## Dependencies
 ]
 .right-column[
-**TODO** - incoming dependencies
-**TODO** - outgoing dependencies
+* **TODO** - incoming dependencies
+* **TODO** - outgoing dependencies
 ]
