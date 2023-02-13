@@ -5,6 +5,8 @@ import textwrap
 import jinja2
 import jira
 
+from jinja2 import select_autoescape
+
 
 class Issue(object):
     def __init__(self, client, raw_issue):
@@ -147,7 +149,7 @@ def render(issues, epics, features, incoming, outgoing, template, start, end, ti
     basedir = os.path.dirname(os.path.dirname(__file__))
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(f'{basedir}/templates/'),
-        autoescape=jinja2.select_autoescape(),
+        autoescape=select_autoescape(),
     )
     env.filters['truncate'] = _truncate_filter
     return env.get_template(template).render(
