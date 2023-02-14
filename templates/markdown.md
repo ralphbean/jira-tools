@@ -11,4 +11,4 @@
 name: last-page
 template: inverse
 
-## All done.
+## Thanks!
