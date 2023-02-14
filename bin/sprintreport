@@ -64,7 +64,8 @@ if __name__ == '__main__':
         log.error(str(e))
         sys.exit(1)
 
-    log.info(f"Gathering issues from JIRA using: {args.jql}")
+    jql = f"{args.jql} and type not in (Feature, Epic)"
+    log.info(f"Gathering issues from JIRA using: {jql}")
     orphan_issues, orphan_epics, features = JIRA.gather_issues(
         args.jql, args.sprint_start
     )
