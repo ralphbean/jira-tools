@@ -8,7 +8,14 @@
 ---
 {% include 'sections/dependencies.md' %}
 ---
-name: last-page
 template: inverse
 
 ## Thanks!
+
+---
+layout: false
+{% include 'sections/epics.md' %}
+
+---
+name: last-page
+{% include 'sections/issues.md' %}
