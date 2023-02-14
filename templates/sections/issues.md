@@ -3,8 +3,8 @@
 ## In Progress
 ## Next
 ## Dependencies
-## Orphan Epics
-## Orphan Issues
+## Other Epics
+## Other Issues
 ]
 .right-column[
 
