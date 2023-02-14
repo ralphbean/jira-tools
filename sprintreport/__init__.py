@@ -131,8 +131,17 @@ class JiraClient(object):
         return orphan_issues, orphan_epics, features
 
     def gather_dependencies(self, jql):
-        # TODO
-        return [], []
+        not_done = "statusCategory != Done"
+        jql = f"{jql} and {not_done}"
+        incoming_query = (
+            f"issueFunction in linkedIssuesOf('{jql}', 'is blocked by') and {not_done}"
+        )
+        incoming = sorted(self.search(incoming_query), key=op.attrgetter('rank'))
+        outgoing_query = (
+            f"issueFunction in linkedIssuesOf('{jql}', 'blocks') and {not_done}"
+        )
+        outgoing = sorted(self.search(outgoing_query), key=op.attrgetter('rank'))
+        return incoming, outgoing
 
 
 def trim(jql):

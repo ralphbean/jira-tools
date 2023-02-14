@@ -5,6 +5,16 @@
 ## Dependencies
 ]
 .right-column[
-* **TODO** - incoming dependencies
-* **TODO** - outgoing dependencies
+
+## Incoming Dependencies
+Stuff we need from other teams.
+{% for issue in incoming %}
+* [{{issue.key}}]({{issue.url}}) {{issue.summary | truncate(40)}}
+{% endfor %}
+
+## Outgoing Dependencies
+Stuff that other teams need from us.
+{% for issue in outgoing %}
+* [{{issue.key}}]({{issue.url}}) {{issue.summary | truncate(40)}}
+{% endfor %}
 ]
