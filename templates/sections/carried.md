@@ -1,6 +1,6 @@
 .left-column[
-## Work Completed
-## Work Still In Progress
+## Completed
+## In Progress
 ]
 .right-column[
 {% for feature in features -%}

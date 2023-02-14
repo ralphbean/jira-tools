@@ -1,7 +1,7 @@
 .left-column[
-## Work Completed
-## Work Still In Progress
-## Work On Deck
+## Completed
+## In Progress
+## Next Up
 ## Dependencies
 ]
 .right-column[

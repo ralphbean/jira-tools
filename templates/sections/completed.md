@@ -1,6 +1,6 @@
 layout: false
 .left-column[
-## Work Completed
+## Completed
 ]
 .right-column[
 {% for feature in features -%}
