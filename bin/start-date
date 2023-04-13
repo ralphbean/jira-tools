@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+""" Print the start dates for all issues in some query """
+
+import argparse
+import logging
+import operator as op
+import sys
+
+import tools.client
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "jql",
+        help="A JIRA Query Language (jql) expression defining the query",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("start-date")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    query = f"""
+    issueFunction in issuesInEpics('issueFunction in portfolioChildrenOf("{args.jql}")')
+    """
+    log.info(f"Gathering issues from JIRA using: {query}")
+    orphan_issues, orphan_epics, features = JIRA.gather_issues(query)
+    if not orphan_issues and not orphan_epics and not features:
+        log.error(f"No issues found in query {query}")
+
+    start_dates = []
+    for issue in orphan_issues:
+        start_dates.append((issue, issue.start_date,))
+    for epic in orphan_epics:
+        start_dates.append((epic, epic.start_date,))
+        for issue in epic.children:
+            start_dates.append((issue, issue.start_date,))
+    for feature in features:
+        start_dates.append((feature, feature.start_date,))
+        for epic in feature.children:
+            start_dates.append((epic, epic.start_date,))
+            for issue in epic.children:
+                start_dates.append((issue, issue.start_date,))
+
+    # Filter out non-started ones
+    start_dates = [(issue, date) for issue, date in start_dates if date]
+    start_dates.sort(key=op.itemgetter(1))
+
+    if not start_dates:
+        print(f"Of {len(orphan_issues + orphan_epics + features)} issues found, none have started")
+    for issue, start_date in start_dates:
+        print(f"{issue.key},{start_date}")
+

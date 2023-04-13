@@ -1,6 +1,6 @@
 import unittest.mock
 
-import sprintreport
+import tools.client
 
 
 class MockStatus(object):
@@ -12,6 +12,11 @@ class MockStatus(object):
         }
 
 
+class MockType(object):
+    def __init__(self, name):
+        self.name = name
+
+
 class MockFields(object):
     def __init__(self, summary, rank, assignee, status, epic, feature):
         self.summary = summary
@@ -20,6 +25,12 @@ class MockFields(object):
         self.status = status
         self.customfield_12311140 = epic
         self.customfield_12313140 = feature
+        if epic:
+            self.issuetype = MockType("Story")
+        elif feature:
+            self.issuetype = MockType("Epic")
+        else:
+            self.issuetype = MockType("Feature")
 
 
 class MockRawIssue(object):
@@ -39,8 +50,8 @@ def _mock_client(self):
     return None
 
 
-@unittest.mock.patch('sprintreport.JiraClient._construct_client', _mock_client)
-def test_gather_simple():
+@unittest.mock.patch('tools.client.JiraClient._construct_client', _mock_client)
+def test_gather_closed_simple():
     mock_queries = {
         'x and type not in (Feature, Epic) and (statusCategory != Done or resolutionDate > x)': [
             MockRawIssue("FOO-123", "Simple issue", "abcdef"),
@@ -49,9 +60,9 @@ def test_gather_simple():
 
     _mock_search = lambda _, query: mock_queries[query]
 
-    JIRA = sprintreport.JiraClient()
-    with unittest.mock.patch('sprintreport.JiraClient._search', _mock_search):
-        issues, epics, features = JIRA.gather_issues("x", "x")
+    JIRA = tools.client.JiraClient()
+    with unittest.mock.patch('tools.client.JiraClient._search', _mock_search):
+        issues, epics, features = JIRA.gather_issues_closed_since("x", "x")
 
     assert len(issues) == 1
     assert len(epics) == 0
@@ -59,8 +70,8 @@ def test_gather_simple():
     assert issues[0].key == "FOO-123"
 
 
-@unittest.mock.patch('sprintreport.JiraClient._construct_client', _mock_client)
-def test_gather_one_epic():
+@unittest.mock.patch('tools.client.JiraClient._construct_client', _mock_client)
+def test_gather_closed_one_epic():
     mock_queries = {
         'x and type not in (Feature, Epic) and (statusCategory != Done or resolutionDate > x)': [
             MockRawIssue("FOO-123", "Simple issue", "abcdef", epic="FOO-500"),
@@ -72,9 +83,9 @@ def test_gather_one_epic():
 
     _mock_search = lambda _, query: mock_queries[query]
 
-    JIRA = sprintreport.JiraClient()
-    with unittest.mock.patch('sprintreport.JiraClient._search', _mock_search):
-        issues, epics, features = JIRA.gather_issues("x", "x")
+    JIRA = tools.client.JiraClient()
+    with unittest.mock.patch('tools.client.JiraClient._search', _mock_search):
+        issues, epics, features = JIRA.gather_issues_closed_since("x", "x")
 
     assert len(issues) == 0  # No orphan issues
     assert len(epics) == 1
@@ -84,8 +95,8 @@ def test_gather_one_epic():
     assert epics[0].children[0].key == "FOO-123"
 
 
-@unittest.mock.patch('sprintreport.JiraClient._construct_client', _mock_client)
-def test_gather_one_feature():
+@unittest.mock.patch('tools.client.JiraClient._construct_client', _mock_client)
+def test_gather_closed_one_feature():
     mock_queries = {
         'x and type not in (Feature, Epic) and (statusCategory != Done or resolutionDate > x)': [
             MockRawIssue("FOO-123", "Simple issue", "abcdef", epic="FOO-500"),
@@ -102,9 +113,9 @@ def test_gather_one_feature():
 
     _mock_search = lambda _, query: mock_queries[query]
 
-    JIRA = sprintreport.JiraClient()
-    with unittest.mock.patch('sprintreport.JiraClient._search', _mock_search):
-        issues, epics, features = JIRA.gather_issues("x", "x")
+    JIRA = tools.client.JiraClient()
+    with unittest.mock.patch('tools.client.JiraClient._search', _mock_search):
+        issues, epics, features = JIRA.gather_issues_closed_since("x", "x")
 
     assert len(issues) == 0  # No orphan issues
     assert len(epics) == 0  # No orphan epics
@@ -116,8 +127,8 @@ def test_gather_one_feature():
     assert features[0].children[0].children[0].key == "FOO-123"
 
 
-@unittest.mock.patch('sprintreport.JiraClient._construct_client', _mock_client)
-def test_gather_one_extra_orphan_issue():
+@unittest.mock.patch('tools.client.JiraClient._construct_client', _mock_client)
+def test_gather_closed_one_extra_orphan_issue():
     mock_queries = {
         'x and type not in (Feature, Epic) and (statusCategory != Done or resolutionDate > x)': [
             MockRawIssue("FOO-123", "Simple issue", "abcdef", epic="FOO-500"),
@@ -135,9 +146,9 @@ def test_gather_one_extra_orphan_issue():
 
     _mock_search = lambda _, query: mock_queries[query]
 
-    JIRA = sprintreport.JiraClient()
-    with unittest.mock.patch('sprintreport.JiraClient._search', _mock_search):
-        issues, epics, features = JIRA.gather_issues("x", "x")
+    JIRA = tools.client.JiraClient()
+    with unittest.mock.patch('tools.client.JiraClient._search', _mock_search):
+        issues, epics, features = JIRA.gather_issues_closed_since("x", "x")
 
     assert len(issues) == 1
     assert issues[0].key == "FOO-124"
@@ -150,8 +161,8 @@ def test_gather_one_extra_orphan_issue():
     assert features[0].children[0].children[0].key == "FOO-123"
 
 
-@unittest.mock.patch('sprintreport.JiraClient._construct_client', _mock_client)
-def test_gather_one_extra_orphan_epic():
+@unittest.mock.patch('tools.client.JiraClient._construct_client', _mock_client)
+def test_gather_closed_one_extra_orphan_epic():
     mock_queries = {
         'x and type not in (Feature, Epic) and (statusCategory != Done or resolutionDate > x)': [
             MockRawIssue("FOO-123", "Simple issue", "abcdef", epic="FOO-500"),
@@ -168,9 +179,9 @@ def test_gather_one_extra_orphan_epic():
 
     _mock_search = lambda _, query: mock_queries[query]
 
-    JIRA = sprintreport.JiraClient()
-    with unittest.mock.patch('sprintreport.JiraClient._search', _mock_search):
-        issues, epics, features = JIRA.gather_issues("x", "x")
+    JIRA = tools.client.JiraClient()
+    with unittest.mock.patch('tools.client.JiraClient._search', _mock_search):
+        issues, epics, features = JIRA.gather_issues_closed_since("x", "x")
 
     assert len(issues) == 0
     assert len(epics) == 1

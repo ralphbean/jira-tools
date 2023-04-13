@@ -1,9 +1,5 @@
-# sprintreport
+# jira-tools
 
-A script to generate a sprint report from JIRA
+A personal collection of scripts for working with JIRA
 
-# Run tests
-
-```
-tox -e unittests
-```
+Run tests with `tox`. Scripts are in `bin/`.
