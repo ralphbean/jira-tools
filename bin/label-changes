@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+""" Print a report on a label over some time period """
+
+import argparse
+import datetime
+import logging
+import operator as op
+import sys
+
+import tools.client
+
+TWO_WEEKS_AGO = str((datetime.datetime.today() - datetime.timedelta(days=14)).date())
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "label",
+        help="A JIRA label on which to report",
+    )
+    parser.add_argument(
+        "--since",
+        default=TWO_WEEKS_AGO,
+        help="How long back in history to go searching for changes",
+    )
+    parser.add_argument(
+        "--constraint",
+        default="type=Feature and project=RHTAP",
+        help="Further constraint on the query",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+def to_date(datestring):
+    return datetime.date(
+        *map(int, datestring.split("T")[0].split("-"))
+    )
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("label-changes")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    since = to_date(args.since)
+    target = args.label
+    query = f"labels={target}"
+    if args.constraint:
+        query = f"{query} and {args.constraint}"
+    log.info(f"Gathering issues from JIRA using: {query}")
+    issues = JIRA._search(query)
+
+    creations, removals, additions = [], [], []
+    for issue in issues:
+        if to_date(issue.fields.created) >= since:
+            creations.append(issue)
+            continue
+        for event in issue.changelog.histories:
+            if to_date(event.created) < since:
+                continue
+            for change in event.items:
+                if change.field != 'labels':
+                    continue
+                if target in change.fromString and target in change.toString:
+                    continue
+                if target in change.fromString and target not in change.toString:
+                    removals.append((issue, event))
+                if target not in change.fromString and target in change.toString:
+                    additions.append((issue, event))
+
+    for issue in creations:
+        date = to_date(issue.fields.created)
+        print(f"{issue.fields.reporter} created {issue.key} on {date}")
+    for issue, event in removals:
+        date = event.created.split('T')[0]
+        print(f"{event.author} removed the {target} label from {issue.key} on {date}")
+    for issue, event in additions:
+        date = event.created.split('T')[0]
+        print(f"{event.author} added the {target} label to {issue.key} on {date}")
