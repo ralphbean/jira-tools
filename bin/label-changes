@@ -80,10 +80,22 @@ if __name__ == '__main__':
                     continue
                 if target in change.fromString and target in change.toString:
                     continue
-                if target in change.fromString and target not in change.toString:
-                    removals.append((issue, event))
                 if target not in change.fromString and target in change.toString:
                     additions.append((issue, event))
+
+    if args.constraint:
+        query = f"{args.constraint}"
+    log.debug(f"Gathering issues from JIRA using: {query}")
+    issues = JIRA._search(query)
+    for issue in issues:
+        for event in issue.changelog.histories:
+            if to_date(event.created) < since:
+                continue
+            for change in event.items:
+                if change.field != 'labels':
+                    continue
+                if target in change.fromString and target not in change.toString:
+                    removals.append((issue, event))
 
     url = tools.client.url
 
