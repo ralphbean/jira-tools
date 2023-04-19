@@ -4,7 +4,6 @@
 import argparse
 import datetime
 import logging
-import operator as op
 import sys
 
 import tools.client
