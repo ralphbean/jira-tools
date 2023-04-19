@@ -90,15 +90,28 @@ if __name__ == '__main__':
     print(f"# Changes to the {target} label since **{since}**")
     print()
 
-    for issue in creations:
+    if creations or additions:
+        print(f"## Additions ({len(creations) + len(additions)})")
+        print()
+
+    sorter = lambda issue: issue.fields.created
+    for issue in sorted(creations, key=sorter, reverse=True):
         date = to_date(issue.fields.created)
         print(f"* [{issue.fields.reporter}]({url}/secure/ViewProfile.jspa?name={issue.fields.reporter.name}) created [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
-    for issue, event in removals:
-        date = event.created.split('T')[0]
-        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) removed the [{target}]({url}/issues/?jql=labels%3D{target}) label from [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
-    for issue, event in additions:
+
+    sorter = lambda pair: pair[1].created
+    for issue, event in sorted(additions, key=sorter, reverse=True):
         date = event.created.split('T')[0]
         print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) added the [{target}]({url}/issues/?jql=labels%3D{target}) label to [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
+
+    if removals:
+        print(f"## Removals ({len(removals)})")
+        print()
+
+    sorter = lambda pair: pair[1].created
+    for issue, event in sorted(removals, key=sorter, reverse=True):
+        date = event.created.split('T')[0]
+        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) removed the [{target}]({url}/issues/?jql=labels%3D{target}) label from [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
 
     if not creations and not removals and not additions:
         print(f"There have been no JIRAs added or removed from the JIRA label [{target}]({url}/issues/?jql=labels%3D{target}) since {since}.")
