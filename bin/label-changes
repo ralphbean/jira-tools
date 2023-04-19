@@ -85,12 +85,17 @@ if __name__ == '__main__':
                 if target not in change.fromString and target in change.toString:
                     additions.append((issue, event))
 
+    url = tools.client.url
+
+    print(f"# Changes to the {target} label since **{since}**")
+    print()
+
     for issue in creations:
         date = to_date(issue.fields.created)
-        print(f"* {issue.fields.reporter} created {issue.key} on {date}")
+        print(f"* [{issue.fields.reporter}]({url}/secure/ViewProfile.jspa?name={issue.fields.reporter.name}) created [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
     for issue, event in removals:
         date = event.created.split('T')[0]
-        print(f"* {event.author} removed the {target} label from {issue.key} on {date}")
+        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) removed the [{target}]({url}/issues/?jql=labels%3D{target}) label from [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
     for issue, event in additions:
         date = event.created.split('T')[0]
-        print(f"* {event.author} added the {target} label to {issue.key} on {date}")
+        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) added the [{target}]({url}/issues/?jql=labels%3D{target}) label to [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
