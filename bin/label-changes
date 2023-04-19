@@ -65,7 +65,7 @@ if __name__ == '__main__':
     query = f"labels={target}"
     if args.constraint:
         query = f"{query} and {args.constraint}"
-    log.info(f"Gathering issues from JIRA using: {query}")
+    log.debug(f"Gathering issues from JIRA using: {query}")
     issues = JIRA._search(query)
 
     creations, removals, additions = [], [], []
@@ -88,10 +88,10 @@ if __name__ == '__main__':
 
     for issue in creations:
         date = to_date(issue.fields.created)
-        print(f"{issue.fields.reporter} created {issue.key} on {date}")
+        print(f"* {issue.fields.reporter} created {issue.key} on {date}")
     for issue, event in removals:
         date = event.created.split('T')[0]
-        print(f"{event.author} removed the {target} label from {issue.key} on {date}")
+        print(f"* {event.author} removed the {target} label from {issue.key} on {date}")
     for issue, event in additions:
         date = event.created.split('T')[0]
-        print(f"{event.author} added the {target} label to {issue.key} on {date}")
+        print(f"* {event.author} added the {target} label to {issue.key} on {date}")
