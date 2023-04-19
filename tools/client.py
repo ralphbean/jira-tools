@@ -7,6 +7,9 @@ import jira
 import tools.model
 
 
+url = os.environ.get("JIRA_URL", "https://issues.redhat.com")
+
+
 def _trim(jql):
     return textwrap.dedent(jql).replace("\n", " ").strip()
 
@@ -18,7 +21,6 @@ class JiraClient(object):
 
     @staticmethod
     def _construct_client():
-        url = os.environ.get("JIRA_URL", "https://issues.redhat.com")
         token = os.environ.get("JIRA_TOKEN")
         if not token:
             raise KeyError(
