@@ -99,3 +99,6 @@ if __name__ == '__main__':
     for issue, event in additions:
         date = event.created.split('T')[0]
         print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) added the [{target}]({url}/issues/?jql=labels%3D{target}) label to [{issue.key}]({url}/browse/{issue.key}) on **{date}**")
+
+    if not creations and not removals and not additions:
+        print(f"There have been no JIRAs added or removed from the JIRA label [{target}]({url}/issues/?jql=labels%3D{target}) since {since}.")
