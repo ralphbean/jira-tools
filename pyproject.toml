@@ -1,6 +1,6 @@
 [project]
-name = "sprintreport"
-description = "A script to generate a sprint report from JIRA"
+name = "jira-tools"
+description = "A collection of JIRA utilities"
 version = "0.1.0"
 authors = [
     { name = "Ralph Bean", email = "rbean@redhat.com" }
