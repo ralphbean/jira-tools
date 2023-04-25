@@ -32,7 +32,6 @@ class JiraClient(object):
     def _search(self, query, page_size=50):
         def _paginate():
             i = 0
-            page_size = page_size
             results = self._client.search_issues(
                 query, maxResults=page_size, startAt=i, expand='changelog'
             )
