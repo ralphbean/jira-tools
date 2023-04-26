@@ -49,6 +49,10 @@ class JiraClient(object):
         issues = self._search(query)
         return [tools.model.Issue.from_raw(self, issue) for issue in issues]
 
+    def count_issues(self, query):
+        response = self._client.search_issues(query, maxResults=1, fields='summary')
+        return response.total
+
     def get(self, key):
         if key not in self.cache:
             query = f"key={key}"
@@ -117,3 +121,8 @@ class JiraClient(object):
         )
         outgoing = sorted(self.search(outgoing_query), key=op.attrgetter('rank'))
         return incoming, outgoing
+
+
+if __name__ == '__main__':
+    client = JiraClient()
+    print(client.count_issues("project=RHTAP"))
