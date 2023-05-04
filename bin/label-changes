@@ -61,6 +61,7 @@ if __name__ == '__main__':
 
     since = to_date(args.since)
     target = args.label
+    target = target.lower()
     query = f"labels={target}"
     if args.constraint:
         query = f"{query} and {args.constraint}"
@@ -78,9 +79,9 @@ if __name__ == '__main__':
             for change in event.items:
                 if change.field != 'labels':
                     continue
-                if target in change.fromString and target in change.toString:
+                if target in change.fromString.lower() and target in change.toString.lower():
                     continue
-                if target not in change.fromString and target in change.toString:
+                if target not in change.fromString.lower() and target in change.toString.lower():
                     additions.append((issue, event))
 
     if args.constraint:
@@ -94,7 +95,7 @@ if __name__ == '__main__':
             for change in event.items:
                 if change.field != 'labels':
                     continue
-                if target in change.fromString and target not in change.toString:
+                if target in change.fromString.lower() and target not in change.toString.lower():
                     removals.append((issue, event))
 
     url = tools.client.url
