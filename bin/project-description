@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+""" Print the description of a given project """
+
+import argparse
+import logging
+import sys
+
+import tools.client
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "project",
+        help="A JIRA project on which to report",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("project-description")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    project = JIRA.get_project(args.project)
+    print(project['description'])

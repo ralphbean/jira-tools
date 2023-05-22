@@ -29,6 +29,13 @@ class JiraClient(object):
 
         return jira.client.JIRA(server=url, token_auth=token)
 
+    def get_project(self, project_id):
+        project = self._client.project(project_id)
+        return {
+            'key': project.key,
+            'description': project.name,
+        }
+
     def _search(self, query, page_size=50):
         def _paginate():
             i = 0
