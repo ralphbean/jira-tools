@@ -60,15 +60,19 @@ class JiraClient(object):
         response = self._client.search_issues(query, maxResults=1, fields='summary')
         return response.total
 
+    def _get(self, key):
+        query = f"key={key}"
+        results = list(self._search(query))
+        if len(results) == 0:
+            raise ValueError(f"Could not find issue {key}")
+        if len(results) > 1:
+            raise ValueError(f"Impossible! Found more than one issue {key}")
+        return results[0]
+
     def get(self, key):
         if key not in self.cache:
-            query = f"key={key}"
-            results = self.search(query)
-            if len(results) == 0:
-                raise ValueError(f"Could not find issue {key}")
-            if len(results) > 1:
-                raise ValueError(f"Impossible! Found more than one issue {key}")
-            self.cache[key] = results[0]
+            issue = self._get(key)
+            self.cache[key] = tools.model.Issue.from_raw(self, issue)
         return self.cache[key]
 
     def gather_issues(self, jql):
