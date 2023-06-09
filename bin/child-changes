@@ -122,7 +122,7 @@ if __name__ == '__main__':
     sorter = lambda pair: pair[1].created
     for issue, event in sorted(additions, key=sorter, reverse=True):
         date = event.created.split('T')[0]
-        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) added [{issue.key}]({url}/browse/{issue.key}) [{target}]({url}/browse/{target}) on **{date}**")
+        print(f"* [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) added [{issue.key}]({url}/browse/{issue.key}) to [{target}]({url}/browse/{target}) on **{date}**")
 
     if removals:
         print(f"## Removals ({len(removals)})")
