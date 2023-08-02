@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+""" Print a report on a JIRA's target start and target end changes over some time period """
+
+import argparse
+import datetime
+import logging
+import sys
+
+import tools.client
+
+FOUR_WEEKS_AGO = str((datetime.datetime.today() - datetime.timedelta(days=28)).date())
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "parent",
+        help="A JIRA parent on which to report",
+    )
+    parser.add_argument(
+        "--since",
+        default=FOUR_WEEKS_AGO,
+        help="How long back in history to go searching for changes",
+    )
+    parser.add_argument(
+        "--constraint",
+        default="type=Epic",
+        help="Further constraint on the query",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+def to_date(datestring):
+    return datetime.date(
+        *map(int, datestring.split("T")[0].split("-"))
+    )
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("child-changes")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    since = to_date(args.since)
+    target = args.parent
+    target = target.upper()
+    parent = JIRA._get(target)
+    query = f'issuekey in childIssuesOf({target})'
+    if args.constraint:
+        query = f"{query} and {args.constraint}"
+    log.debug(f"Gathering issues from JIRA using: {query}")
+    issues = JIRA._search(query)
+
+    changes = []
+    for issue in issues:
+        for event in issue.changelog.histories:
+            if to_date(event.created) < since:
+                continue
+            for change in event.items:
+                if change.field not in ('Target start', 'Target end'):
+                    continue
+                changes.append((issue, event, change))
+
+    url = tools.client.url
+
+    print(f"# Changes to target start/end dates on epics under the {target} parent since **{since}**")
+    print()
+    print(f"## {parent.fields.summary}")
+    print()
+
+    if changes:
+        print(f"## Changes ({len(changes)})")
+        print()
+
+    sorter = lambda pair: pair[1].created
+    for issue, event, change in sorted(changes, key=sorter, reverse=True):
+        date = event.created.split('T')[0]
+        fromstring = change.fromString or 'nothing'
+        tostring = change.toString or 'nothing'
+        print(f"* On {date}, [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) updated **{change.field}** on [{issue.key}]({url}/browse/{issue.key}) from **{fromstring}** to **{tostring}**")
+
+    if not changes:
+        print(f"There have been no changes to target start/end dates on epics under the parent [{target}]({url}/browse/{target}) since {since}.")
