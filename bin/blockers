@@ -26,6 +26,12 @@ def get_args():
         help="Further constraint on the query",
     )
     parser.add_argument(
+        "--inverse",
+        default=False,
+        action="store_true",
+        help="Invert the report",
+    )
+    parser.add_argument(
         "--debug",
         default=False,
         action="store_true",
@@ -42,6 +48,73 @@ def to_date(datestring):
 
 def print_linked_issue(item, end):
     print(f"**{item.fields.summary.strip()}** ([{item.key}]({url}/browse/{item.key}))", end=end)
+
+
+def print_blockers_in_terms_of_trackers(url, target, parent, blocked_issues):
+    print(f"# Items blocking trackers for {target}")
+    print()
+    print(f"## {parent.fields.summary}")
+    print()
+
+    if blocked_issues:
+        print(f"## Trackers ({len(blocked_issues)})")
+        print()
+
+    sorter = lambda pair: len(pair[1])
+    for blocked, links in sorted(blocked_issues.values(), key=sorter):
+        print(f"* **{blocked.fields.summary.strip()}** ([{blocked.key}]({url}/browse/{blocked.key})) is blocked by {len(links)} blockers", end='')
+
+        if not links:
+            print('.')
+            continue
+
+        print(': ', end='')
+
+        for link in links[:-1]:
+            print_linked_issue(link.inwardIssue, end=', ')
+        link = links[-1]
+        print_linked_issue(link.inwardIssue, end='.\n')
+
+    if not blocked_issues:
+        print(f"No blocked issues found related to the parent [{target}]({url}/browse/{target}).")
+
+
+def print_trackers_in_terms_of_blockers(url, target, parent, blockers):
+    print(f"# Trackers for {target} in terms of blockers")
+    print()
+    print(f"## {parent.fields.summary}")
+    print()
+
+    if blockers:
+        print(f"## Blockers ({len(blockers)})")
+        print()
+
+    sorter = lambda pair: len(pair[1])
+    for blocker, trackers in sorted(blockers.values(), key=sorter, reverse=True):
+        print(f"* **{blocker.fields.summary.strip()}** ([{blocker.key}]({url}/browse/{blocker.key})) blocks {len(trackers)} trackers", end='')
+
+        if not trackers:
+            print('.')
+            continue
+
+        print(': ', end='')
+
+        for tracker in trackers[:-1]:
+            print_linked_issue(tracker, end=', ')
+        tracker = trackers[-1]
+        print_linked_issue(tracker, end='.\n')
+
+    if not blockers:
+        print(f"No blockers found related to the parent [{target}]({url}/browse/{target}).")
+
+
+def invert(blocked_issues):
+    blockers = {}
+    for issue, links in blocked_issues.values():
+        for link in links:
+            blockers[link.inwardIssue.key] = blockers.get(link.inwardIssue.key, (link.inwardIssue, []))
+            blockers[link.inwardIssue.key][1].append(issue)
+    return blockers
 
 
 if __name__ == '__main__':
@@ -81,31 +154,11 @@ if __name__ == '__main__':
 
     url = tools.client.url
 
-    print(f"# Items blocking trackers for {target}")
-    print()
-    print(f"## {parent.fields.summary}")
-    print()
+    if args.inverse:
+        blockers = invert(blocked_issues)
+        print_trackers_in_terms_of_blockers(url, target, parent, blockers)
+    else:
+        print_blockers_in_terms_of_trackers(url, target, parent, blocked_issues)
 
-    if blocked_issues:
-        print(f"## Trackers ({len(blocked_issues)})")
-        print()
-
-    sorter = lambda pair: len(pair[1])
-    for blocked, links in sorted(blocked_issues.values(), key=sorter):
-        print(f"* **{blocked.fields.summary.strip()}** ([{blocked.key}]({url}/browse/{blocked.key})) is blocked by {len(links)} blockers", end='')
-
-        if not links:
-            print('.')
-            continue
-
-        print(': ', end='')
-
-        for link in links[:-1]:
-            print_linked_issue(link.inwardIssue, end=', ')
-        link = links[-1]
-        print_linked_issue(link.inwardIssue, end='.\n')
-
-    if not blocked_issues:
-        print(f"No blocked issues found related to the parent [{target}]({url}/browse/{target}).")
     print()
     print(f"Query used: `{query}`")
