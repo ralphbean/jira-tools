@@ -67,7 +67,7 @@ if __name__ == '__main__':
     log.debug(f"Gathering issues from JIRA using: {query}")
     issues = list(JIRA._search(query))
 
-    blockers = []
+    blocked_issues = {}
     for issue in issues:
         links = [
             link for link in issue.fields.issuelinks
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                 link.inwardIssue.fields.status.statusCategory != 'Done'
             )
         ]
-        blockers.append((issue, links))
+        blocked_issues[issue.key] = (issue, links)
 
     url = tools.client.url
 
@@ -86,12 +86,12 @@ if __name__ == '__main__':
     print(f"## {parent.fields.summary}")
     print()
 
-    if blockers:
-        print(f"## Trackers ({len(blockers)})")
+    if blocked_issues:
+        print(f"## Trackers ({len(blocked_issues)})")
         print()
 
     sorter = lambda pair: len(pair[1])
-    for blocked, links in sorted(blockers, key=sorter):
+    for blocked, links in sorted(blocked_issues.values(), key=sorter):
         print(f"* **{blocked.fields.summary.strip()}** ([{blocked.key}]({url}/browse/{blocked.key})) is blocked by {len(links)} blockers", end='')
 
         if not links:
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         link = links[-1]
         print_linked_issue(link.inwardIssue, end='.\n')
 
-    if not blockers:
+    if not blocked_issues:
         print(f"No blocked issues found related to the parent [{target}]({url}/browse/{target}).")
     print()
     print(f"Query used: `{query}`")
