@@ -40,8 +40,7 @@ def to_date(datestring):
     )
 
 
-def print_linked_issue(link, end):
-    item = link.inwardIssue
+def print_linked_issue(item, end):
     print(f"**{item.fields.summary.strip()}** ([{item.key}]({url}/browse/{item.key}))", end=end)
 
 
@@ -102,9 +101,9 @@ if __name__ == '__main__':
         print(': ', end='')
 
         for link in links[:-1]:
-            print_linked_issue(link, end=', ')
+            print_linked_issue(link.inwardIssue, end=', ')
         link = links[-1]
-        print_linked_issue(link, end='.\n')
+        print_linked_issue(link.inwardIssue, end='.\n')
 
     if not blockers:
         print(f"No blocked issues found related to the parent [{target}]({url}/browse/{target}).")
