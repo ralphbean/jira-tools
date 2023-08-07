@@ -51,7 +51,7 @@ def print_linked_issue(item, end):
 
 
 def print_blockers_in_terms_of_trackers(url, target, parent, blocked_issues):
-    print(f"# Items blocking trackers for {target}")
+    print(f"# Open blockers for the trackers of {target}")
     print()
     print(f"## {parent.fields.summary}")
     print()
@@ -80,7 +80,7 @@ def print_blockers_in_terms_of_trackers(url, target, parent, blocked_issues):
 
 
 def print_trackers_in_terms_of_blockers(url, target, parent, blockers):
-    print(f"# Trackers for {target} in terms of blockers")
+    print(f"# Trackers for {target}, in terms of open blockers")
     print()
     print(f"## {parent.fields.summary}")
     print()
@@ -147,9 +147,10 @@ if __name__ == '__main__':
             if (
                 hasattr(link, 'inwardIssue') and
                 link.type.name == 'Blocks' and
-                link.inwardIssue.fields.status.statusCategory != 'Done'
+                link.inwardIssue.fields.status.statusCategory.name != 'Done'
             )
         ]
+
         blocked_issues[issue.key] = (issue, links)
 
     url = tools.client.url
