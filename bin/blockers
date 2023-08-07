@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+""" Print a report on blockers blocking related issues to a parent """
+
+import argparse
+import datetime
+import logging
+import sys
+
+import tools.client
+
+FOUR_WEEKS_AGO = str((datetime.datetime.today() - datetime.timedelta(days=28)).date())
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "parent",
+        help="A JIRA parent on which to report",
+    )
+    parser.add_argument(
+        "--constraint",
+        default="type=Feature and summary ~ \"Enablement\" and statusCategory != Done",
+        help="Further constraint on the query",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+def to_date(datestring):
+    return datetime.date(
+        *map(int, datestring.split("T")[0].split("-"))
+    )
+
+
+def print_linked_issue(link, end):
+    item = link.inwardIssue
+    print(f"**{item.fields.summary.strip()}** ([{item.key}]({url}/browse/{item.key}))", end=end)
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("blockers")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    target = args.parent
+    target = target.upper()
+    parent = JIRA._get(target)
+    query = f'issueFunction in linkedIssuesOf("key={target}")'
+    if args.constraint:
+        query = f"{query} and {args.constraint}"
+    log.debug(f"Gathering issues from JIRA using: {query}")
+    issues = list(JIRA._search(query))
+
+    blockers = []
+    for issue in issues:
+        links = [
+            link for link in issue.fields.issuelinks
+            if (
+                hasattr(link, 'inwardIssue') and
+                link.type.name == 'Blocks' and
+                link.inwardIssue.fields.status.statusCategory != 'Done'
+            )
+        ]
+        blockers.append((issue, links))
+
+    url = tools.client.url
+
+    print(f"# Items blocking trackers for {target}")
+    print()
+    print(f"## {parent.fields.summary}")
+    print()
+
+    if blockers:
+        print(f"## Trackers ({len(blockers)})")
+        print()
+
+    sorter = lambda pair: len(pair[1])
+    for blocked, links in sorted(blockers, key=sorter):
+        print(f"* **{blocked.fields.summary.strip()}** ([{blocked.key}]({url}/browse/{blocked.key})) is blocked by {len(links)} blockers", end='')
+
+        if not links:
+            print('.')
+            continue
+
+        print(': ', end='')
+
+        for link in links[:-1]:
+            print_linked_issue(link, end=', ')
+        link = links[-1]
+        print_linked_issue(link, end='.\n')
+
+    if not blockers:
+        print(f"No blocked issues found related to the parent [{target}]({url}/browse/{target}).")
+    print()
+    print(f"Query used: `{query}`")
