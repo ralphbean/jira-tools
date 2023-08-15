@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+""" Print some attribute for all issues in some query """
+
+import argparse
+import logging
+import operator as op
+import sys
+
+import tools.client
+
+
+def get_args():
+    """
+    Parse args from the command-line.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "jql",
+        help="A JIRA Query Language (jql) expression defining the query",
+    )
+    parser.add_argument(
+        "--attribute",
+        default="Target end",
+        help="Which attribute to print out",
+    )
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Emit extra debug information to stdout",
+    )
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger("start-date")
+
+    try:
+        JIRA = tools.client.JiraClient()
+    except KeyError as e:
+        log.error(str(e))
+        sys.exit(1)
+
+    all_fields = JIRA._client.fields()
+    jira_name_map = {field['name']: field['id'] for field in all_fields}
+    attribute_key = jira_name_map[args.attribute]
+
+    query = args.jql
+    log.debug(f"Gathering issues from JIRA using: {query}")
+    issues = list(JIRA._search(query))
+    log.debug(f"  Found {len(issues)} issues")
+    for issue in issues:
+        attribute = getattr(issue.fields, attribute_key) or None
+        if args.debug:
+            print(f"{issue}, {attribute}")
+        elif attribute:
+            print(attribute)
