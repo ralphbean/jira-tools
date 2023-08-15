@@ -3,7 +3,6 @@
 
 import argparse
 import logging
-import operator as op
 import sys
 
 import tools.client
