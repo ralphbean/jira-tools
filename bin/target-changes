@@ -75,7 +75,7 @@ if __name__ == '__main__':
             if to_date(event.created) < since:
                 continue
             for change in event.items:
-                if change.field not in ('Target start', 'Target end'):
+                if change.field not in ('Target start', 'Target end', 'duedate'):
                     continue
                 changes.append((issue, event, change))
 
@@ -93,8 +93,8 @@ if __name__ == '__main__':
     sorter = lambda pair: pair[1].created
     for issue, event, change in sorted(changes, key=sorter, reverse=True):
         date = event.created.split('T')[0]
-        fromstring = change.fromString or 'nothing'
-        tostring = change.toString or 'nothing'
+        fromstring = (change.fromString or 'nothing').split()[0]
+        tostring = (change.toString or 'nothing').split()[0]
         print(f"* On {date}, [{event.author}]({url}/secure/ViewProfile.jspa?name={event.author.name}) updated **{change.field}** on [{issue.key}]({url}/browse/{issue.key}) from **{fromstring}** to **{tostring}**")
 
     if not changes:
