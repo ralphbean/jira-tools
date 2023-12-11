@@ -10,7 +10,7 @@ dependencies = ["jira", "jinja2"]
 
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["hatchling!=1.19.0"]
 
 [project.optional-dependencies]
 dev = [
