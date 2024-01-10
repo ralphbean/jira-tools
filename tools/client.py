@@ -136,4 +136,4 @@ class JiraClient(object):
 
 if __name__ == '__main__':
     client = JiraClient()
-    print(client.count_issues("project=RHTAP"))
+    print(client.count_issues("project=KONFLUX"))
