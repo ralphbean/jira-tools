@@ -36,7 +36,7 @@ class JiraClient(object):
             'description': project.name,
         }
 
-    def _search(self, query, page_size=50):
+    def _search(self, query, page_size=50, limit=None):
         def _paginate():
             i = 0
             results = self._client.search_issues(
@@ -45,7 +45,9 @@ class JiraClient(object):
             while results:
                 for result in results:
                     yield result
-                i = i + page_size
+                    i = i + 1
+                    if limit and i >= limit:
+                        break
                 results = self._client.search_issues(
                     query, maxResults=page_size, startAt=i, expand='changelog'
                 )
