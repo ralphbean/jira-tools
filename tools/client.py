@@ -48,6 +48,8 @@ class JiraClient(object):
                     i = i + 1
                     if limit and i >= limit:
                         break
+                if limit and i >= limit:
+                    break
                 results = self._client.search_issues(
                     query, maxResults=page_size, startAt=i, expand='changelog'
                 )
